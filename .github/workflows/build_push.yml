@@ -1,0 +1,54 @@
+name: Build and push
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      frontend_image_tag:
+        value: ${{ jobs.build-and-push.outputs.frontend_image_tag }}
+      backend_image_tag:
+        value: ${{ jobs.build-and-push.outputs.backend_image_tag }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend_image_tag: ${{ steps.image_details.outputs.frontend_image_tag }}
+      backend_image_tag: ${{ steps.image_details.outputs.backend_image_tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: marcinbator
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: quality_module_api
+          push: true
+          tags: |
+            ghcr.io/marcinbator/azure_k8s_test_backend:${{ github.ref_name }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: quality_module_app
+          build-args: |
+            BACKEND_URL=${{ secrets.BACKEND_URL }}
+          push: true
+          tags: |
+            ghcr.io/marcinbator/azure_k8s_test_frontend:${{ github.ref_name }}
+
+      - name: Set images tags output
+        id: image_details
+        run: |
+          echo "frontend_image_tag=ghcr.io/marcinbator/azure_k8s_test_frontend:${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "backend_image_tag=ghcr.io/marcinbator/azure_k8s_test_backend:${{ github.ref_name }}" >> $GITHUB_OUTPUT

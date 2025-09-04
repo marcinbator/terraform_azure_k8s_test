@@ -1,0 +1,2 @@
+# No external dependencies required for basic HTTP server
+# All imports (http.server, json, os) are built-in Python modules

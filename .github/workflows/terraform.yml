@@ -1,0 +1,48 @@
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      frontend_image_tag:
+        required: true
+        type: string
+      backend_image_tag:
+        required: true
+        type: string
+
+jobs:
+  terraform:
+    name: "Provision infrastructure and deploy"
+    runs-on: ubuntu-latest
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+      TF_VAR_cr_username: ${{ secrets.CR_USERNAME }}
+      TF_VAR_cr_password: ${{ secrets.CR_PASSWORD }}
+
+      TF_VAR_frontend_image_tag: ${{ inputs.frontend_image_tag }}
+      TF_VAR_backend_image_tag: ${{ inputs.backend_image_tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: TF Init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: TF Plan
+        working-directory: ./terraform
+        run: terraform plan -input=false
+
+      - name: TF Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve -input=false
