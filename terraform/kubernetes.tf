@@ -73,7 +73,7 @@ resource "kubernetes_deployment_v1" "backend" {
           image = var.backend_image_tag
           
           port {
-            container_port = 8000
+            container_port = 8080
           }
           resources {
             requests = {
@@ -122,7 +122,7 @@ resource "kubernetes_deployment_v1" "frontend" {
           image = var.frontend_image_tag
           image_pull_policy = "IfNotPresent"
           port {
-            container_port = 80
+            container_port = 3000
           }
           resources {
             requests = {
@@ -153,10 +153,10 @@ resource "kubernetes_service_v1" "backend_svc" {
 
     port {
       port        = 8000
-      target_port = 8000
+      target_port = 8080
     }
 
-    type = "ClusterIP"
+    type = "LoadBalancer"
   }
 }
 
@@ -173,7 +173,7 @@ resource "kubernetes_service_v1" "frontend_svc" {
 
     port {
       port        = 80
-      target_port = 80
+      target_port = 3000
     }
 
     type = "LoadBalancer"
