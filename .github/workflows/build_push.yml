@@ -32,7 +32,7 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
-          context: quality_module_api
+          context: src/backend
           push: true
           tags: |
             ghcr.io/marcinbator/azure_k8s_test_backend:${{ github.ref_name }}
@@ -40,7 +40,7 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
-          context: quality_module_app
+          context: src/frontend
           build-args: |
             BACKEND_URL=${{ secrets.BACKEND_URL }}
           push: true
